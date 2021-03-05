@@ -1,0 +1,354 @@
+CREATE TABLE admins(
+    admin_id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    hashed_password VARCHAR(255) NOT NULL,
+    PRIMARY KEY(admin_id)
+);
+
+ALTER TABLE admins ADD INDEX index_username (username);
+
+CREATE TABLE users(
+    user_id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    hashed_password VARCHAR(255) NOT NULL,
+    is_register BOOLEAN,
+    PRIMARY KEY(user_id) 
+);
+
+ALTER TABLE users ADD INDEX index_username (username);
+
+CREATE TABLE address (
+    addr_id  INT NOT NULL AUTO_INCREMENT COMMENT 'THE UNIQUE ADDRESS ID',
+    street   VARCHAR(32) NOT NULL COMMENT 'THE STREET OF THE  CUSTOMER ADDRESS',
+    city     VARCHAR(32) NOT NULL COMMENT 'THE CITY OF THE  CUSTOMER ADDRESS',
+    state    VARCHAR(32) NOT NULL COMMENT 'THE STATE OF THE  CUSTOMER ADDRESS',
+    zipcode  INT NOT NULL COMMENT 'THE ZIPCODE OF THE  CUSTOMER ADDRESS',
+    PRIMARY KEY(addr_id)
+);
+
+CREATE TABLE class (
+    class_id        INT NOT NULL COMMENT 'THE UNIQUE ID FOR EACH CLASS',
+    class_name      VARCHAR(32) NOT NULL COMMENT 'THE NAME OF EACH CLASS',
+    daily_rate      DECIMAL(10, 2) NOT NULL COMMENT 'THE RATE OF DAILY RENT',
+    over_limit_fee  DECIMAL(10, 2) NOT NULL COMMENT 'THE OVER MILEAGE FEE',
+    PRIMARY KEY(class_id)
+);
+
+CREATE TABLE corporate_customer (
+    cust_id    INT NOT NULL COMMENT 'THE UNIQUE ID FOR EACH CUSTOMER OF EACH TYPE',
+    cust_type  VARCHAR(1) NOT NULL COMMENT 'THE CUSTOMER TYPE OF EACH CUSTOMER',
+    emp_id     INT NOT NULL COMMENT 'THE EMPLOYEE ID OF EACH EMPLOYEE ',
+    corp_id    INT NULL,
+    PRIMARY KEY(cust_id, cust_type)
+);
+
+CREATE TABLE corporation (
+    corp_id        INT NOT NULL COMMENT 'THE CORPORATION ID FOR EACH CORPORATION',
+    corp_name      VARCHAR(32) NOT NULL COMMENT 'THE NAME OF THE CORPORATION',
+    reg_num        DECIMAL(32) NOT NULL COMMENT 'THE REGISTRATION NUMBER OF EACH CORPORATION',
+    corp_discount  DECIMAL(3, 3) NOT NULL COMMENT 'THE DISCOUNT OF EACH CORPORATION',
+    PRIMARY KEY(corp_id)
+);
+
+CREATE TABLE coupon (
+    coupon_id        INT NOT NULL COMMENT 'THE UNIQUE COUPON ID FOR EACH COUPON',
+    coupon_discount  DECIMAL(3, 3) NOT NULL COMMENT 'THE DISCOUNT OF EACH COUPON',
+    vld_beg_date     DATETIME NOT NULL COMMENT 'THE VALID BEGIN DATE OF THE COUPON',
+    vld_end_date     DATETIME NOT NULL COMMENT 'THE VALID END DATE OF THE COUPON',
+    PRIMARY KEY(coupon_id)    
+);
+
+CREATE TABLE customer (
+    cust_id       INT NOT NULL COMMENT 'THE UNIQUE ID FOR EACH CUSTOMER OF EACH TYPE',
+    cust_type     VARCHAR(1) NOT NULL COMMENT 'THE CUSTOMER TYPE OF EACH CUSTOMER',
+    first_name    VARCHAR(32) NOT NULL COMMENT 'THE FIRST NAME OF AN INDIVIDUAL OR A CORPRATE CUSTOMER',
+    last_name     VARCHAR(32) NOT NULL COMMENT 'THE LAST NAME OF AN INDIVIDUAL OR A CORPRATE CUSTOMER',
+    cust_phone    BIGINT NOT NULL COMMENT 'THE PHONE NUMBER OF THE  CUSTOMER',
+    cust_email    VARCHAR(32) NOT NULL COMMENT 'THE EMAIL ADDRESS OF THE  CUSTOMER',
+    addr_id       INT NOT NULL,
+    PRIMARY KEY(cust_id, cust_type)
+);
+
+ALTER TABLE customer
+    ADD CONSTRAINT ch_inh_customer CHECK ( cust_type IN ( 'C', 'I' ) );
+
+CREATE TABLE individual_customer (
+    cust_id    INT NOT NULL COMMENT 'THE UNIQUE ID FOR EACH CUSTOMER OF EACH TYPE',
+    cust_type  VARCHAR(1) NOT NULL COMMENT 'THE CUSTOMER TYPE OF EACH CUSTOMER',
+    dln        DECIMAL(32) NOT NULL COMMENT 'THE DRIVER LICENSE NUMBER OF EACH INDIVIDUAL CUSTOMER',
+    icn        VARCHAR(32) NOT NULL COMMENT 'THE INSURANCE COMPANY NAME  OF EACH INDIVIDUAL CUSTOMER',
+    ipn        DECIMAL(32) NOT NULL COMMENT 'THE INSURANCE POLICY NUMBER OF EACH INDIVIDUAL CUSTOMER',
+    coupon_id  INT NOT NULL,
+    PRIMARY KEY(cust_id, cust_type)
+);
+
+CREATE TABLE invoice (
+    inv_id    INT NOT NULL AUTO_INCREMENT COMMENT 'THE UNIQUE ID FOR INVOICE',
+    inv_date  DATETIME NOT NULL COMMENT 'THE DATE OF THE INOVICE',
+    amount    DECIMAL(32) NOT NULL COMMENT 'THE AMOUNT OF THE TRANSACTION',
+    PRIMARY KEY(inv_id)
+);
+
+CREATE TABLE office_location (
+    loc_id       INT NOT NULL COMMENT 'THE UNIQUE IF FOR OFFICE  LOCATION',
+    loc_street   VARCHAR(32) NOT NULL COMMENT 'THE STREET OF THE ADDRESS',
+    loc_city     VARCHAR(32) NOT NULL COMMENT 'THE CITY OF THE ADDRESS',
+    loc_state    VARCHAR(32) NOT NULL COMMENT 'THE STATE OF THE ADDRESS',
+    loc_zipcode  INT NOT NULL,
+    loc_phone    DECIMAL(32) NOT NULL COMMENT 'THE PHONE OF THE RENT OFFICE',
+    PRIMARY KEY(loc_id)
+);
+
+CREATE TABLE payment (
+    pmt_id    INT NOT NULL AUTO_INCREMENT COMMENT 'THE UNIQUE ID FOR PAYMENT',
+    pmt_date  DATETIME NOT NULL COMMENT 'THE DATE OF THE PAYMENT',
+    pmt_type  VARCHAR(5) NOT NULL COMMENT 'THE TYPE OF PAYMENT',
+    pmt_amt   DECIMAL(32) NOT NULL COMMENT 'THE AMOUNT OF THE PAYMENT',
+    card_num  DECIMAL(32) NOT NULL COMMENT 'THE CARD NUMBER OF THE PAYMENT',
+    inv_id    INT NOT NULL,
+    PRIMARY KEY(pmt_id)
+);
+
+CREATE TABLE service (
+    serv_id    INT NOT NULL AUTO_INCREMENT COMMENT 'THE SERVICE ID FOR EACH SERVICE',
+    pu_date    DATETIME NOT NULL COMMENT 'THE PICK UP DATE',
+    do_date    DATETIME NOT NULL COMMENT 'THE DROP OFF DATE',
+    odo_start  DECIMAL(32) NOT NULL COMMENT 'THE START ODOMETER',
+    odo_end    DECIMAL(32) NOT NULL COMMENT 'THE END ODOMETER ',
+    dly_lim    DECIMAL(32) COMMENT 'THE DAILY ODOMETER LIMIT FOR THE RENTAL SERVICE',
+    veh_id     INT NOT NULL,
+    cust_id    INT NOT NULL,
+    cust_type  VARCHAR(1) NOT NULL,
+    inv_id     INT NOT NULL,
+    pu_loc_id  INT NOT NULL,
+    do_loc_id  INT NOT NULL,
+    PRIMARY KEY(serv_id)
+);
+
+CREATE UNIQUE INDEX service__idx ON
+    service (
+        inv_id
+    ASC );
+
+
+CREATE TABLE vehicle (
+    veh_id    INT NOT NULL COMMENT 'THE UNIQUE ID NUMBER FOR EACH VEHICLE IN THE DATABASE',
+    make      VARCHAR(32) NOT NULL COMMENT 'THE DESCRIPTION ABOUT HOW THE VEHICLE WAS MADE',
+    model     VARCHAR(32) NOT NULL COMMENT 'THE MODEL OF THE VEHICLE',
+    year      INTEGER NOT NULL COMMENT 'YEAR THAT THE VEHICLE WAS MADE',
+    vin       VARCHAR(32) NOT NULL COMMENT 'VEHICLE IDENTIFICATION NUMBER',
+    lpn       VARCHAR(32) NOT NULL COMMENT 'THE LICENSE PLATE NUMBER',
+    loc_id    INT NOT NULL,
+    class_id  INT NOT NULL,
+    PRIMARY KEY(veh_id)
+);
+
+CREATE TABLE history(
+    hist_id INT NOT NULL AUTO_INCREMENT,
+    inv_id INT NOT NULL,
+    serv_id INT NOT NULL,
+    PRIMARY KEY(hist_id)
+);
+
+ALTER TABLE history
+    ADD CONSTRAINT fk_hist_inv FOREIGN KEY ( inv_id )
+        REFERENCES invoice ( inv_id );
+ALTER TABLE history
+    ADD CONSTRAINT fk_hist_serv FOREIGN KEY ( serv_id )
+        REFERENCES service ( serv_id );
+ALTER TABLE history ADD INDEX index_inv_id (inv_id);
+ALTER TABLE history ADD INDEX index_serv_id (serv_id);
+
+CREATE TABLE hist_cust(
+    hist_id INT NOT NULL,
+    cust_id INT NOT NULL,
+    cust_type VARCHAR(1) NOT NULL
+);
+ALTER TABLE hist_cust
+    ADD CONSTRAINT fk_hist_cust_hist FOREIGN KEY ( hist_id  )
+        REFERENCES history ( hist_id );
+ALTER TABLE hist_cust
+    ADD CONSTRAINT fk_hist_cust_cust FOREIGN KEY ( cust_id,cust_type )
+        REFERENCES customer ( cust_id,cust_type );
+
+
+
+ALTER TABLE customer
+    ADD CONSTRAINT fk_addr_cust FOREIGN KEY ( addr_id )
+        REFERENCES address ( addr_id );
+
+ALTER TABLE customer
+    ADD INDEX index_fk_address(addr_id);
+
+ALTER TABLE vehicle
+    ADD CONSTRAINT fk_class_veh FOREIGN KEY ( class_id )
+        REFERENCES class ( class_id );
+
+ALTER TABLE vehicle
+    ADD INDEX index_fk_class(class_id);
+
+ALTER TABLE corporate_customer
+    ADD CONSTRAINT fk_corp_corp FOREIGN KEY ( corp_id )
+        REFERENCES corporation ( corp_id );
+
+ALTER TABLE corporate_customer
+    ADD INDEX index_fk_corp(corp_id);
+
+ALTER TABLE individual_customer
+    ADD CONSTRAINT fk_coup_ind FOREIGN KEY ( coupon_id )
+        REFERENCES coupon ( coupon_id );
+
+ALTER TABLE individual_customer
+    ADD INDEX index_fk_coup(coupon_id);
+
+ALTER TABLE corporate_customer
+    ADD CONSTRAINT fk_cust_corp FOREIGN KEY ( cust_id,
+                                              cust_type )
+        REFERENCES customer ( cust_id,
+                              cust_type );
+
+ALTER TABLE corporate_customer
+    ADD INDEX index_fk_cust(cust_id, cust_type);
+
+ALTER TABLE individual_customer
+    ADD CONSTRAINT fk_cust_ind FOREIGN KEY ( cust_id,
+                                             cust_type )
+        REFERENCES customer ( cust_id,
+                              cust_type );
+
+ALTER TABLE individual_customer
+    ADD INDEX index_fk_cust(cust_id, cust_type);
+
+ALTER TABLE service
+    ADD CONSTRAINT fk_cust_serv FOREIGN KEY ( cust_id,
+                                              cust_type )
+        REFERENCES customer ( cust_id,
+                              cust_type );
+ALTER TABLE service
+    ADD INDEX index_fk_cust(cust_id, cust_type);
+
+ALTER TABLE payment
+    ADD CONSTRAINT fk_inv_pmt FOREIGN KEY ( inv_id )
+        REFERENCES invoice ( inv_id );
+
+ALTER TABLE payment
+    ADD INDEX index_fk_inv(inv_id);
+
+ALTER TABLE service
+    ADD CONSTRAINT fk_loc_serv_do FOREIGN KEY ( do_loc_id )
+        REFERENCES office_location ( loc_id );
+
+ALTER TABLE service
+    ADD INDEX index_fk_do_loc(do_loc_id);
+
+ALTER TABLE service
+    ADD CONSTRAINT fk_loc_serv_pu FOREIGN KEY ( pu_loc_id )
+        REFERENCES office_location ( loc_id );
+
+ALTER TABLE service
+    ADD INDEX index_fk_pu_loc(pu_loc_id);
+
+ALTER TABLE vehicle
+    ADD CONSTRAINT fk_loc_veh FOREIGN KEY ( loc_id )
+        REFERENCES office_location ( loc_id );
+
+ALTER TABLE vehicle
+    ADD INDEX index_fk_loc(loc_id);
+
+ALTER TABLE service
+    ADD CONSTRAINT fk_serv_inv FOREIGN KEY ( inv_id )
+        REFERENCES invoice ( inv_id );
+
+ALTER TABLE service
+    ADD INDEX index_fk_inv(inv_id);
+
+ALTER TABLE service
+    ADD CONSTRAINT fk_veh_serv FOREIGN KEY ( veh_id )
+        REFERENCES vehicle ( veh_id );
+
+ALTER TABLE service
+    ADD INDEX index_fk_veh(veh_id);
+
+drop trigger if exists arc_fkarc_individual_customer_update;
+delimiter $
+CREATE TRIGGER arc_fkarc_individual_customer_update BEFORE UPDATE   
+	ON individual_customer     
+#INSERT OR UPDATE OF cust_id, cust_type ON individual_customer     
+	FOR EACH ROW 
+BEGIN     
+	DECLARE d VARCHAR(1);     
+	SELECT         
+		a.cust_type     
+	INTO d     
+	FROM         
+		customer a     
+        WHERE   
+			a.cust_id = new.cust_id AND a.cust_type = new.cust_type;     
+	IF ( d IS NULL OR d <> 'I' ) THEN         
+		SIGNAL SQLSTATE '42S22' SET MESSAGE_TEXT = 'FK in Table INDIVIDUAL_CUSTOMER violates constraint on Table CUSTOMER CUST_TYPE doesn''t have value ''I''';     
+	END IF; 
+END$
+delimiter ;
+
+drop trigger if exists arc_fkarc_individual_customer_insert;
+delimiter $
+CREATE TRIGGER arc_fkarc_individual_customer_insert BEFORE INSERT   
+	ON individual_customer         
+	FOR EACH ROW 
+BEGIN     
+	DECLARE d VARCHAR(1);     
+	SELECT         
+		a.cust_type     
+	INTO d     
+	FROM         
+		customer a     
+        WHERE   
+			a.cust_id = new.cust_id AND a.cust_type = new.cust_type;     
+	IF ( d IS NULL OR d <> 'I' ) THEN         
+		SIGNAL SQLSTATE '42S22' SET MESSAGE_TEXT = 'FK in Table INDIVIDUAL_CUSTOMER violates constraint on Table CUSTOMER CUST_TYPE doesn''t have value ''I''';     
+	END IF; 
+END$
+delimiter ;
+
+drop trigger if exists arc_fkarc_corporate_customer_insert;
+delimiter $
+CREATE TRIGGER arc_fkarc_corporate_customer_insert BEFORE INSERT   
+	ON corporate_customer     
+    #INSERT OR UPDATE OF cust_id, cust_type ON individual_customer     
+    FOR EACH ROW 
+BEGIN     
+	DECLARE d VARCHAR(1);     
+    SELECT         
+		a.cust_type     
+    INTO d     
+    FROM         
+		customer a     
+	WHERE   
+		a.cust_id = new.cust_id AND a.cust_type = new.cust_type;     
+	IF ( d IS NULL OR d <> 'C' ) THEN         
+		SIGNAL SQLSTATE '42S22' SET MESSAGE_TEXT = 'FK in Table CORPORATE_CUSTOMER violates constraint on Table CUSTOMER CUST_TYPE doesn''t have value ''C''';     
+	END IF; 
+END$
+delimiter ;
+
+drop trigger if exists arc_fkarc_corporate_customer_update;
+delimiter $
+CREATE TRIGGER arc_fkarc_corporate_customer_update BEFORE UPDATE   
+	ON corporate_customer     
+    #INSERT OR UPDATE OF cust_id, cust_type ON individual_customer     
+    FOR EACH ROW 
+BEGIN     
+	DECLARE d VARCHAR(1);     
+    SELECT         
+		a.cust_type     
+    INTO d     
+    FROM         
+		customer a     
+	WHERE   
+		a.cust_id = new.cust_id AND a.cust_type = new.cust_type;     
+	IF ( d IS NULL OR d <> 'C' ) THEN         
+		SIGNAL SQLSTATE '42S22' SET MESSAGE_TEXT = 'FK in Table CORPORATE_CUSTOMER violates constraint on Table CUSTOMER CUST_TYPE doesn''t have value ''C''';     
+	END IF; 
+END$
+delimiter ;
+
